@@ -1930,6 +1930,28 @@ func (f *oneofField) getter(g *Generator, mc *msgCtx) {
 		g.P("}")
 		g.P()
 	}
+
+	// Must getters for each oneof
+	for _, sf := range f.subFields {
+		if sf.deprecated != "" {
+			g.P(sf.deprecated)
+		}
+		g.P("func (m *", mc.goName, ") ", Annotate(mc.message.file, sf.fullPath, fmt.Sprintf("Must%s", sf.getterName)), "() "+sf.goType+" {")
+		g.P("return m.", f.getterName, "().(*", sf.oneofTypeName, ").", sf.goName)
+		g.P("}")
+		g.P()
+	}
+
+	// Constructors for each oneof
+	for _, sf := range f.subFields {
+		if sf.deprecated != "" {
+			g.P(sf.deprecated)
+		}
+		g.P("func New", sf.oneofTypeName, "(x ", sf.goType, ") *", mc.goName, "{")
+		g.P("return &", mc.goName, "{", f.goName, ": &", sf.oneofTypeName, "{x}}")
+		g.P("}")
+		g.P()
+	}
 }
 
 // setter prints the setter method of the field.
